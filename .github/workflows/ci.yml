@@ -1,0 +1,59 @@
+# .github/workflows/ci.yml
+
+name: CI Pipeline for Clustering App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        # Run basic linting or tests here if available
+        python -m unittest discover
+
+  docker_build:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build Docker image
+      run: |
+        docker build -t clustering_app:latest .
+
+    - name: Run Docker container
+      run: |
+        docker run -d -p 8501:8501 clustering_app:latest
+
+  deploy:
+    needs: docker_build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy container
+      run: |
+        echo "Deployment step. Add your deployment scripts here."
